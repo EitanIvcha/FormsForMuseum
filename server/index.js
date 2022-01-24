@@ -106,7 +106,7 @@ app.post("/addDisplay", (req, res) => {
   const reason = req.body.Reason;
   const sectionID = req.body.SectionID;
   db.query(
-    "INSERT INTO display (Name, Theme,permanent,StartDate,EndDate,Curator,Designer, ShortDesc, Reason,SectionID) VALUES (?,?,?,?,?,?,?,?,?,?)",
+    "INSERT INTO display (Name, Theme,permanent,StartDate,EndDate,Curator,Designer, ShortDesc, Reason, SectionID) VALUES (?,?,?,?,?,?,?,?,?,?)",
     [
       name,
       theme,
@@ -150,7 +150,7 @@ app.post("/addShowcase", (req, res) => {
 
   db.query(
     "INSERT INTO showcase (Number,Name,Descr,Type,SpecialCare,DisplayID) VALUES (?,?,?,?,?,?)",
-    [Number, Name, Descr, NumOfItems, Type, SpecialCare, DisplayID],
+    [Number, Name, Descr, Type, SpecialCare, DisplayID],
     (err, result) => {
       if (err) {
         console.log(err);
@@ -171,14 +171,71 @@ app.get("/Showcase", (req, res) => {
   });
 });
 
-app.get("/employees", (req, res) => {
-  db.query("SELECT * FROM employees", (err, result) => {
+//Get Post Item
+
+app.get("/Item", (req, res) => {
+  db.query("SELECT * FROM item", (err, result) => {
     if (err) {
       console.log(err);
     } else {
       res.send(result);
     }
   });
+});
+
+app.post("/addItem", (req, res) => {
+  const ID = req.body.ID;
+  const name = req.body.name;
+  const descr = req.body.descr;
+  const shortDescr = req.body.shortDescr;
+  const storage = req.body.storage;
+  const displayID = req.body.displayID == "" ? null : req.body.displayID;
+  const showcaseID = req.body.showcaseID == "" ? null : req.body.showcaseID;
+  const site = req.body.site;
+  const period = req.body.period;
+  const age = req.body.age;
+  const material = req.body.material;
+  const website = req.body.website;
+  const size = req.body.size;
+  const references = req.body.references;
+  const itemData = req.body.itemData;
+  const data = itemData.map((x) =>
+    Object.keys(x)
+      .filter((key) => key != "id")
+      .map((key) => `${key} => ${x[key]}`)
+      .join(" &&& ")
+  );
+  const data1 = data.map((temp) => temp + "^%^");
+  console.log(data1.toString());
+  console.log(data1.toString().split("^%^"));
+
+  db.query(
+    "INSERT INTO item (ItemID, ItemName, Descr, ShortDescr, InStorage, DisplayID, ShowcaseID, Site, Period, Age, Material, Website, Size, Refs, ItemData) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+    [
+      ID,
+      name,
+      descr,
+      shortDescr,
+      storage,
+      displayID,
+      showcaseID,
+      site,
+      period,
+      age,
+      material,
+      website,
+      size,
+      references,
+      data1.toString(),
+    ],
+    (err, result) => {
+      if (err) {
+        console.log(err);
+      } else {
+        res.send("Values Inserted");
+      }
+    }
+  );
 });
 
 app.put("/update", (req, res) => {
@@ -208,54 +265,48 @@ app.delete("/delete/:id", (req, res) => {
   });
 });
 
-app.post("/create", (req, res) => {
-  const name = req.body.name;
-  const age = req.body.age;
-  const country = req.body.country;
-  const position = req.body.position;
-  const wage = req.body.wage;
+// const storage = multer.diskStorage({
+//   destination: "./public/uploads/",
+//   filename: function (req, file, cb) {
+//     cb(null, "IMAGE-" + Date.now() + path.extname(file.originalname));
+//   },
+// });
 
-  db.query(
-    "INSERT INTO employees (name, age, country, position, wage) VALUES (?,?,?,?,?)",
-    [name, age, country, position, wage],
-    (err, result) => {
-      if (err) {
-        console.log(err);
-      } else {
-        res.send("Values Inserted");
-      }
-    }
-  );
+// const upload = multer({
+//   storage: storage,
+//   limits: { fileSize: 1000000 },
+// }).single("myImage");
+
+// // test
+// app.post("/upload", (req, res) => {
+//   upload(req, res, function (err) {
+//     console.log("Request ---", req.body);
+//     console.log("Request file ---", req.file); //Here you get file.
+//     /*Now do where ever you want to do*/
+//     if (!err) {
+//       return res.send(200).end();
+//     }
+//   });
+// });
+
+//TEST
+const multerGoogleStorage = require("multer-google-storage");
+const uploadHandler = multer({
+  storage: multerGoogleStorage.storageEngine({
+    autoRetry: true,
+    bucket: "mophm2022",
+    projectId: "concise-decker-339115",
+    keyFilename: "./server/concise-decker-339115-ad248b789424.json",
+    filename: (req, file, cb) => {
+      cb(null, `/projectimages/${Date.now()}_${file.originalname}`);
+      console.log(file);
+    },
+  }),
 });
 
-// test
-app.post("/upload", (req, res) => {
-  console.log("here i am");
-});
-
-const storage = multer.diskStorage({
-  destination: "./public/uploads/",
-  filename: function (req, file, cb) {
-    cb(null, "IMAGE-" + Date.now() + path.extname(file.originalname));
-  },
-});
-
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 1000000 },
-}).single("myImage");
-
-const router = express.Router();
-
-router.post("/upload", function (req, res) {
-  upload(req, res, function (err) {
-    iconsole.log("Request ---", req.body);
-    console.log("Request file ---", req.file); //Here you get file.
-    /*Now do where ever you want to do*/
-    if (!err) {
-      return res.send(200).end();
-    }
-  });
+app.post("/upload", uploadHandler.any(), function (req, res) {
+  console.log(req.files);
+  res.json(req.files);
 });
 
 app.listen(3001, () => {
