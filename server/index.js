@@ -1,3 +1,4 @@
+const port = process.env.PORT || 3001;
 const express = require("express");
 const app = express();
 const mysql = require("mysql");
@@ -10,11 +11,28 @@ app.use(cors());
 app.use(express.json());
 
 const db = mysql.createConnection({
-  user: "yuval",
+  user: "root",
   host: "35.224.215.248",
-  password: "R113p8#2",
+  password: "MOPHM2022",
   database: "museum",
 });
+
+// let db = "";
+
+// const createUnixSocketPool = async (config) => {
+//   const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql";
+
+//   // Establish a connection to the database
+//   db = mysql.createPool({
+//     user: process.env.DB_USER, // e.g. 'my-db-user'
+//     password: process.env.DB_PASS, // e.g. 'my-db-password'
+//     database: process.env.DB_NAME, // e.g. 'my-database'
+//     // If connecting via unix domain socket, specify the path
+//     socketPath: `${dbSocketPath}/${process.env.INSTANCE_CONNECTION_NAME}`,
+//     // Specify additional properties here.
+//     ...config,
+//   });
+// };
 
 // add and get Museums
 app.post("/addMuseum", (req, res) => {
@@ -309,6 +327,16 @@ app.post("/upload", uploadHandler.any(), function (req, res) {
   res.json(req.files);
 });
 
-app.listen(3001, () => {
-  console.log("Yey, your server is running on port 3001");
+app.get("/", function (req, res) {
+  console.log("i am here");
+  res.json("Hello hallo");
+});
+
+app.get("/test", function (req, res) {
+  console.log("asd");
+  res.json("zxczxcasdnplo");
+});
+
+app.listen(port, () => {
+  console.log("Yey, your server is running on port HADA" + port);
 });
